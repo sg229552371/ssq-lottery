@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>双色球中奖查询</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #faf8f5;
+            --bg-secondary: #f5f2ed;
+            --bg-card: #ffffff;
+            --text-primary: #1a1814;
+            --text-secondary: #5c564e;
+            --text-muted: #8a8279;
+            --accent-red: #e63946;
+            --accent-red-light: #fee2e2;
+            --accent-blue: #457b9d;
+            --accent-blue-light: #dbeafe;
+            --accent-gold: #d4a853;
+            --accent-gold-light: #fef3c7;
+            --border: #e8e4de;
+            --shadow: rgba(26, 24, 20, 0.06);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 280px;
+            grid-template-rows: auto 1fr;
+            gap: 16px;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 12px 0;
+        }
+
+        .header h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: 0 2px 8px var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .card-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: linear-gradient(180deg, var(--accent-red) 0%, var(--accent-gold) 100%);
+            border-radius: 2px;
+        }
+
+        /* Latest Result - Left Top */
+        .latest-section {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .latest-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .issue-badge {
+            background: linear-gradient(135deg, var(--accent-red) 0%, #dc2626 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .balls-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .ball {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 3px 8px var(--shadow);
+        }
+
+        .ball.red {
+            background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .ball.blue {
+            background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .ball.plus {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 20px;
+            box-shadow: none;
+        }
+
+        .bonus-display {
+            text-align: center;
+        }
+
+        .bonus-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent-red);
+        }
+
+        .bonus-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Manual Input - Right Top */
+        .input-section {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .input-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .input-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .multi-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: 'Noto Sans SC', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            resize: vertical;
+            background: var(--bg-primary);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .multi-input:focus {
+            border-color: var(--accent-red);
+        }
+
+        .multi-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, var(--accent-red) 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        /* Result Section */
+        .result-section {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-summary {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .summary-item {
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .summary-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .summary-value.highlight {
+            color: var(--accent-red);
+        }
+
+        .summary-value.gold {
+            color: var(--accent-gold);
+        }
+
+        .summary-label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .result-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+        }
+
+        .result-item.won {
+            background: var(--accent-gold-light);
+        }
+
+        .result-index {
+            color: var(--text-muted);
+            min-width: 24px;
+        }
+
+        .result-balls {
+            display: flex;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .result-balls .mini-ball {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .result-balls .mini-ball.red {
+            background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .result-balls .mini-ball.blue {
+            background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .result-balls .mini-ball.matched {
+            box-shadow: 0 0 0 3px var(--accent-gold), 0 0 12px var(--accent-gold);
+            transform: scale(1.1);
+        }
+
+        .result-level {
+            font-weight: 600;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .result-level.won {
+            color: var(--accent-red);
+        }
+
+        .result-money {
+            font-size: 11px;
+            color: var(--accent-gold);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .result-match {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        /* History Section - Bottom */
+        .history-section {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: var(--bg-primary);
+        }
+
+        .history-item:active {
+            background: var(--accent-gold-light);
+        }
+
+        .history-issue {
+            font-size: 11px;
+            color: var(--text-secondary);
+            min-width: 48px;
+        }
+
+        .history-balls {
+            display: flex;
+            gap: 3px;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .history-balls .mini-ball {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .history-balls .mini-ball.red {
+            background: linear-gradient(145deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .history-balls .mini-ball.blue {
+            background: linear-gradient(145deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .history-copy {
+            font-size: 10px;
+            color: var(--accent-blue);
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        .history-item:hover .history-copy {
+            opacity: 1;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--text-primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto 1fr;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .header {
+                grid-column: 1 / -1;
+            }
+
+            .latest-section {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .input-section {
+                grid-column: 2;
+                grid-row: 2;
+            }
+
+            .history-section {
+                grid-column: 1 / -1;
+                grid-row: 3;
+                max-height: 300px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 12px;
+            }
+
+            .header {
+                padding: 10px 0;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .card {
+                padding: 14px;
+            }
+
+            .latest-section,
+            .input-section,
+            .history-section {
+                grid-column: 1;
+            }
+
+            .latest-section { grid-row: 2; }
+            .input-section { grid-row: 3; }
+            .history-section { grid-row: 4; max-height: 250px; }
+
+            .ball {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .ball-input {
+                width: 34px;
+                height: 34px;
+                font-size: 13px;
+            }
+
+            .history-list {
+                max-height: none;
+            }
+        }
+
+        /* Scrollbar */
+        .history-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>双色球中奖查询</h1>
+        </header>
+
+        <!-- Latest Result -->
+        <div class="card latest-section">
+            <div class="card-title">最新开奖</div>
+            <div class="latest-content">
+                <div class="issue-badge" id="latestIssue">第 26033 期</div>
+                <div class="balls-display" id="latestBalls">
+                    <!-- Balls inserted by JS -->
+                </div>
+                <div class="bonus-display">
+                    <div class="bonus-amount" id="bonusAmount">22.04 亿</div>
+                    <div class="bonus-label">奖池累计</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="card input-section">
+            <div class="card-title">核查号码</div>
+            <div class="input-content">
+                <p class="input-hint">每行一组号码，格式：6个红球 + 1个蓝球，用空格分隔<br>例如：<strong>03 06 13 21 28 29 06</strong></p>
+                
+                <!-- Multi-line Input -->
+                <textarea class="multi-input" id="multiInput" placeholder="03 06 13 21 28 29 06
+05 08 15 19 26 32 11
+02 09 14 20 27 33 07"></textarea>
+
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="clearInput()">清空</button>
+                    <button class="btn btn-primary" onclick="checkNumbers()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                        </svg>
+                        批量核查
+                    </button>
+                </div>
+
+                <!-- Result -->
+                <div class="result-section" id="resultSection">
+                    <div class="result-summary" id="resultSummary"></div>
+                    <div class="result-list" id="resultList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="card history-section">
+            <div class="card-title">历史开奖 <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(点击复制)</span></div>
+            <div class="history-list" id="historyList">
+                <!-- History items -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 数据
+        const SSQ_DATA = {
+            latest: {
+                issue: '26033',
+                date: '2026-03-26',
+                red: [3, 6, 13, 21, 28, 29],
+                blue: 6,
+                bonus: 2204000000
+            },
+            history: [
+                { issue: '26032', date: '03-24', red: [5, 8, 15, 19, 26, 32], blue: 11 },
+                { issue: '26031', date: '03-21', red: [2, 9, 14, 20, 27, 33], blue: 7 },
+                { issue: '26030', date: '03-19', red: [1, 7, 16, 22, 25, 31], blue: 4 },
+                { issue: '26029', date: '03-17', red: [4, 10, 18, 23, 29, 30], blue: 9 },
+                { issue: '26028', date: '03-14', red: [3, 6, 11, 17, 24, 28], blue: 2 },
+            ]
+        };
+
+        // 渲染最新开奖
+        function renderLatest() {
+            const d = SSQ_DATA.latest;
+            document.getElementById('latestIssue').textContent = `第 ${d.issue} 期 · ${d.date}`;
+            
+            const ballsHtml = d.red.map(n => 
+                `<div class="ball red">${n.toString().padStart(2, '0')}</div>`
+            ).join('') + '<span class="ball plus">+</span>' +
+            `<div class="ball blue">${d.blue.toString().padStart(2, '0')}</div>`;
+            
+            document.getElementById('latestBalls').innerHTML = ballsHtml;
+            
+            const bonusYi = (d.bonus / 100000000).toFixed(2);
+            document.getElementById('bonusAmount').textContent = `${bonusYi} 亿`;
+        }
+
+        // 渲染历史
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            container.innerHTML = SSQ_DATA.history.map(item => {
+                const ballsHtml = item.red.map(n => 
+                    `<div class="mini-ball red">${n.toString().padStart(2, '0')}</div>`
+                ).join('') + 
+                `<div class="mini-ball blue">${item.blue.toString().padStart(2, '0')}</div>`;
+                
+                return `
+                    <div class="history-item" onclick="copyToInput(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                        <span class="history-issue">${item.issue}</span>
+                        <div class="history-balls">${ballsHtml}</div>
+                        <span class="history-copy">复制</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 复制到输入框
+        function copyToInput(item) {
+            const text = `${item.red.map(n => n.toString().padStart(2, '0')).join(' ')} ${item.blue.toString().padStart(2, '0')}`;
+            const multiInput = document.getElementById('multiInput');
+            if (multiInput.value && !multiInput.value.endsWith('\n')) {
+                multiInput.value += '\n';
+            }
+            multiInput.value += text;
+            showToast(`已复制第 ${item.issue} 期号码`);
+        }
+
+        // 清空输入
+        function clearInput() {
+            document.getElementById('multiInput').value = '';
+            document.getElementById('resultSection').classList.remove('show');
+        }
+
+        // 核查号码
+        function checkNumbers() {
+            let input = document.getElementById('multiInput').value.trim();
+            if (!input) {
+                showToast('请输入号码');
+                return;
+            }
+
+            // 删除多余符号，只保留数字、空格和换行
+            input = input.replace(/[^\d\s\n]/g, ' ').replace(/[ \t]+/g, ' ').trim();
+
+            const lines = input.split('\n').filter(line => line.trim());
+            if (lines.length === 0) {
+                showToast('请输入有效的号码');
+                return;
+            }
+
+            const latest = SSQ_DATA.latest;
+            const results = [];
+            let totalCost = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const parts = lines[i].trim().split(/\s+/).map(n => parseInt(n));
+                
+                if (parts.length !== 7 || parts.some(n => isNaN(n))) {
+                    showToast(`第 ${i + 1} 行格式错误`);
+                    return;
+                }
+
+                const red = parts.slice(0, 6);
+                const blue = parts[6];
+
+                if (!red.every(n => n >= 1 && n <= 33) || blue < 1 || blue > 16) {
+                    showToast(`第 ${i + 1} 行号码超出范围`);
+                    return;
+                }
+
+                totalCost += 2;
+                const redMatch = red.filter(n => latest.red.includes(n)).length;
+                const blueMatch = blue === latest.blue ? 1 : 0;
+                const result = getPrizeLevel(redMatch, blueMatch);
+                
+                results.push({
+                    index: i + 1,
+                    red,
+                    blue,
+                    redMatch,
+                    blueMatch,
+                    level: result.level,
+                    money: result.money,
+                    prize: result.prize,
+                    won: result.level !== '未中奖'
+                });
+            }
+
+            // 统计
+            const winCount = results.filter(r => r.won).length;
+            const winMoney = calculatePrize(results);
+
+            // 渲染汇总
+            document.getElementById('resultSummary').innerHTML = `
+                <div class="summary-item">
+                    <div class="summary-value">${results.length}</div>
+                    <div class="summary-label">共 ${results.length} 组</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value highlight">¥${totalCost}</div>
+                    <div class="summary-label">花销 ${totalCost} 元</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value ${winCount > 0 ? 'gold' : ''}">${winCount}</div>
+                    <div class="summary-label">中奖 ${winCount} 组</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value ${winMoney > 0 ? 'gold' : ''}">¥${winMoney}</div>
+                    <div class="summary-label">预计奖金</div>
+                </div>
+            `;
+
+
+
+            // 渲染列表
+            document.getElementById('resultList').innerHTML = results.map(r => {
+                const redBalls = r.red.map(n => {
+                    const matched = latest.red.includes(n);
+                    return `<div class="mini-ball red ${matched ? 'matched' : ''}">${n.toString().padStart(2, '0')}</div>`;
+                }).join('');
+                const blueBall = `<div class="mini-ball blue ${r.blueMatch ? 'matched' : ''}">${r.blue.toString().padStart(2, '0')}</div>`;
+                
+                return `
+                    <div class="result-item ${r.won ? 'won' : ''}">
+                        <span class="result-index">#${r.index}</span>
+                        <div class="result-balls">${redBalls}${blueBall}</div>
+                        <span class="result-level ${r.won ? 'won' : ''}">${r.level}</span>
+                        <span class="result-money">${r.money !== '0' ? '¥'+r.money : ''}</span>
+                        <span class="result-match">${r.redMatch}+${r.blueMatch}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('resultSection').classList.add('show');
+        }
+
+        // 获取中奖等级
+        function getPrizeLevel(redMatch, blueMatch) {
+            // 一等奖：6红+1蓝
+            if (redMatch === 6 && blueMatch === 1) return { level: '一等奖', money: '浮动', prize: 0 };
+            // 二等奖：6红+0蓝
+            if (redMatch === 6 && blueMatch === 0) return { level: '二等奖', money: '浮动', prize: 0 };
+            // 三等奖：5红+1蓝
+            if (redMatch === 5 && blueMatch === 1) return { level: '三等奖', money: '3000', prize: 3000 };
+            // 四等奖：5红+0蓝 或 4红+1蓝
+            if ((redMatch === 5 && blueMatch === 0) || (redMatch === 4 && blueMatch === 1)) return { level: '四等奖', money: '200', prize: 200 };
+            // 五等奖：4红+0蓝 或 3红+1蓝
+            if ((redMatch === 4 && blueMatch === 0) || (redMatch === 3 && blueMatch === 1)) return { level: '五等奖', money: '10', prize: 10 };
+            // 六等奖：2红+1蓝 或 1红+1蓝 或 0红+1蓝
+            if ((redMatch === 2 && blueMatch === 1) || (redMatch === 1 && blueMatch === 1) || (redMatch === 0 && blueMatch === 1)) return { level: '六等奖', money: '5', prize: 5 };
+            // 福运奖：3红+0蓝（限时）
+            if (redMatch === 3 && blueMatch === 0) return { level: '福运奖', money: '5', prize: 5 };
+            return { level: '未中奖', money: '0', prize: 0 };
+        }
+
+        // 计算奖金
+        function calculatePrize(results) {
+            let total = 0;
+            results.forEach(r => {
+                total += r.prize;
+            });
+            return total;
+        }
+
+        // 提示
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            renderLatest();
+            renderHistory();
+        });
+    </script>
+</body>
+</html>
