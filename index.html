@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>双色球查询工具</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f0f2f5;color:#333}
+        .container{max-width:500px;margin:0 auto;padding:16px;padding-bottom:140px}
+        
+        /* 标题 */
+        .header{text-align:center;padding:20px 0 16px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:16px;color:#fff;margin-bottom:16px}
+        .header h1{font-size:22px;font-weight:700;margin-bottom:4px}
+        .header p{font-size:13px;opacity:0.9}
+        
+        /* 卡片 */
+        .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+        .card-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+        .badge{background:#edf2f7;color:#4a5568;padding:4px 8px;border-radius:6px;font-size:12px}
+        
+        /* 号码球 */
+        .ball-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+        .ball{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;box-shadow:0 3px 6px rgba(0,0,0,0.12)}
+        .ball.red{background:linear-gradient(135deg,#ff6b6b,#ee5a5a)}
+        .ball.blue{background:linear-gradient(135deg,#4ecdc4,#44a08d);width:42px;height:42px;font-size:17px}
+        .ball.matched{transform:scale(1.2);box-shadow:0 6px 16px rgba(255,193,7,0.6);border:3px solid #ffc107;z-index:10}
+        
+        /* 信息行 */
+        .info-row{font-size:13px;color:#718096;margin-bottom:10px;padding:10px;background:#f7fafc;border-radius:8px;line-height:1.6}
+        .info-row b{color:#2d3748;font-size:14px}
+        
+        /* 按钮 */
+        .btn{display:block;width:100%;padding:13px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:center}
+        .btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;box-shadow:0 4px 12px rgba(102,126,234,0.3)}
+        .btn-secondary{background:#e2e8f0;color:#4a5568}
+        .btn:active{transform:scale(0.98)}
+        .btn.loading{opacity:0.7;cursor:not-allowed}
+        
+        /* 手动输入区 */
+        .manual-area{margin-top:14px;padding-top:12px;border-top:1px dashed #e2e8f0}
+        .manual-input{width:100%;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px}
+        .manual-input:focus{border-color:#667eea}
+        textarea{width:100%;min-height:120px;padding:12px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;resize:none;outline:none;font-family:inherit;line-height:1.8}
+        
+        /* 结果列表 */
+        .result-list{margin-top:12px}
+        .result-item{background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:10px;border:1px solid #e2e8f0}
+        .mini-balls{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+        .mini-ball{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+        .mini-ball.red{background:linear-gradient(135deg,#ff6b6b,#ee5a5a)}
+        .mini-ball.blue{background:linear-gradient(135deg,#4ecdc4,#44a08d)}
+        .mini-ball.matched{border:3px solid #ffc107;transform:scale(1.15)}
+        
+        .status-win{background:linear-gradient(135deg,#ffd93d,#ff9f0a);color:#fff;padding:8px;border-radius:8px;text-align:center;font-size:13px;font-weight:700;margin-bottom:6px}
+        .status-lose{background:#cbd5e0;color:#718096;padding:8px;border-radius:8px;text-align:center;font-size:13px;font-weight:600;margin-bottom:6px}
+        
+        .detail{font-size:12px;color:#718096;line-height:1.6;background:#fff;padding:8px;border-radius:6px}
+        
+        /* 底部栏 */
+        .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;padding:14px;z-index:999}
+        .btn-check{background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;width:100%;box-shadow:0 4px 16px rgba(17,153,142,0.3)}
+        
+        /* 统计卡片 */
+        .stats-card{background:linear-gradient(135deg,#ffeaa7,#fdcb6e);border-radius:10px;padding:12px;margin-bottom:12px;text-align:center}
+        .stat-val{font-size:24px;font-weight:700;color:#d35400}
+        .stat-lbl{font-size:12px;color:#718096;margin-top:4px}
+        
+        /* 隐藏类 */
+        .hidden{display:none}
+        
+        /* 提示框 */
+        .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.9);color:#fff;padding:14px 24px;border-radius:10px;font-size:14px;z-index:10000;display:none;max-width:80%;text-align:center}
+        .toast.show{display:block}
+        
+        #resultsSection{display:none}
+        
+        /* 期号下拉选择 */
+        .history-select{width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;margin-bottom:8px}
+        .history-select:focus{border-color:#667eea}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>🎱 双色球查询工具</h1>
+            <p>双色球开奖查询 · 自动核验</p>
+        </div>
+        
+        <!-- 开奖号码区 -->
+        <div id="lotteryCard" class="card">
+            <div class="card-title">
+                📊 最新开奖号码
+                <span id="lastUpdate" class="badge">更新于 -</span>
+            </div>
+            
+            <button onclick="fetchLatest()" id="fetchBtn" class="btn btn-primary">
+                🔄 获取最新开奖号码
+            </button>
+            
+            <div id="latestInfo" class="info-row hidden"></div>
+            <div id="latestBalls" class="ball-row hidden"></div>
+            
+            <!-- 历史记录下拉选择 -->
+            <div id="historyArea" class="manual-area hidden">
+                <div style="font-size:13px;color:#718096;margin-bottom:8px">选择历史期号：</div>
+                <select id="historySelect" class="history-select" onchange="loadHistoryLottery()">
+                    <option value="">-- 选择期号 --</option>
+                </select>
+            </div>
+            
+            <!-- 手动输入区 -->
+            <div class="manual-area">
+                <div style="font-size:13px;color:#718096;margin-bottom:8px">或手动输入号码：</div>
+                <input type="text" id="manualInput" class="manual-input" placeholder="格式：01 05 09 14 19 33+12 或 01,05,09,14,19,33+12">
+                <button onclick="setManualLottery()" class="btn btn-secondary">确认输入</button>
+            </div>
+        </div>
+        
+        <!-- 我的号码 -->
+        <div class="card">
+            <div class="card-title">
+                🎫 我的号码（固定 15 注）
+                <span class="badge" id="ticketCount">15</span>
+            </div>
+            <textarea id="ticketsDisplay" readonly></textarea>
+        </div>
+        
+        <!-- 结果区域 -->
+        <div id="resultsSection" class="card">
+            <div class="card-title">✅ 核验结果 (<span id="matchCount">0</span>中)</div>
+            <div id="statsContent"></div>
+            <div id="resultsList" class="result-list"></div>
+        </div>
+    </div>
+    
+    <!-- 底部按钮 -->
+    <div class="bottom-bar">
+        <button onclick="checkTickets()" id="checkBtn" class="btn-check">🎯 一键核验 (F12)</button>
+    </div>
+    
+    <!-- 提示框 -->
+    <div id="toast" class="toast"></div>
+    
+    <script>
+        // ========== 你的 15 注号码 ==========
+        const YOUR_TICKETS = [
+            "01 05 09 14 19 33 12",
+            "01 06 09 14 22 29 01",
+            "01 08 14 17 22 27 12",
+            "01 09 14 18 22 30 16",
+            "01 09 12 14 24 32 16",
+            "02 06 14 18 22 29 15",
+            "03 08 12 21 26 33 10",
+            "03 09 14 20 28 32 10",
+            "05 06 13 14 19 22 15",
+            "05 06 13 19 22 30 07",
+            "06 08 14 21 22 27 07",
+            "06 10 13 22 28 31 01",
+            "07 08 09 18 26 31 12",
+            "10 16 20 24 26 30 05",
+            "11 14 18 22 27 31 09"
+        ];
+        
+        let latest = null;
+        let historyList = [];
+        
+        // ========== API 配置 ==========
+        const API_BASE_URL = 'https://api.huiniao.top/interface/home/lotteryHistory';
+        
+        // ========== DOM 元素 ==========
+        const lotteryInfoEl = document.getElementById('latestInfo');
+        const latestBallsEl = document.getElementById('latestBalls');
+        const manualInputEl = document.getElementById('manualInput');
+        const ticketsDisplayEl = document.getElementById('ticketsDisplay');
+        const resultsSection = document.getElementById('resultsSection');
+        const statsContent = document.getElementById('statsContent');
+        const resultsList = document.getElementById('resultsList');
+        const matchCountEl = document.getElementById('matchCount');
+        const toastEl = document.getElementById('toast');
+        const fetchBtn = document.getElementById('fetchBtn');
+        const historyArea = document.getElementById('historyArea');
+        const historySelect = document.getElementById('historySelect');
+        
+        // ========== 初始化 ==========
+        (function init(){
+            ticketsDisplayEl.value = YOUR_TICKETS.join('\n');
+            document.getElementById('ticketCount').textContent = YOUR_TICKETS.length;
+            
+            // 恢复缓存的开奖号码
+            const cached = localStorage.getItem('ssq_latest_15_tickets');
+            if(cached){
+                latest = JSON.parse(cached);
+                showLatest(latest);
+            }
+            
+            showToast('已加载你的 15 注号码 ✓');
+        })();
+        
+        // ========== 获取最新开奖号码 ==========
+        async function fetchLatest(){
+            const btn = document.getElementById('fetchBtn');
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btn.innerHTML = '⏳ 正在获取...';
+            
+            try {
+                // 使用免费彩票API - http://api.huiniao.top
+                const apiUrl = `${API_BASE_URL}?type=ssq&page=1&limit=1`;
+                
+                console.log('API URL:', apiUrl);
+                
+                const res = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if(!res.ok){
+                    throw new Error('网络请求失败或 API 不可用');
+                }
+                
+                const data = await res.json();
+                console.log('API Response:', data);
+                
+                if(data.code === 1 && data.data && data.data.last){
+                    const lotto = data.data.last;
+                    
+                    // 解析号码: one-two-three-four-five-six-seven，前6个红球，最后1个蓝球
+                    latest = {
+                        date: lotto.day,
+                        issue: lotto.code,
+                        reds: [
+                            parseInt(lotto.one),
+                            parseInt(lotto.two),
+                            parseInt(lotto.three),
+                            parseInt(lotto.four),
+                            parseInt(lotto.five),
+                            parseInt(lotto.six)
+                        ],
+                        blue: parseInt(lotto.seven),
+                        timestamp: Date.now()
+                    };
+                    
+                    showLatest(latest);
+                    saveToStorage();
+                    showToast('✓ 更新成功');
+                }else{
+                    throw new Error(data.info || 'API 返回数据格式错误');
+                }
+                
+            } catch(e){
+                console.error('Fetch error:', e);
+                showToast('API 调用失败: ' + e.message);
+                manualInputEl.focus();
+            }finally{
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btn.innerHTML = '🔄 刷新开奖号码';
+            }
+        }
+        
+        // ========== 解析彩票结果字符串 ==========
+        function parseLotteryRes(resString){
+            // 格式：03,08,11,14,18,23,16 (前 6 个红球，最后 1 个蓝球)
+            if(!resString) return {reds:[], blue:null};
+            
+            const nums = resString.split(',').map(n=>parseInt(n));
+            if(nums.length !== 7){
+                // 尝试处理带@的情况：01,11,02,09,14,22,25@05,03
+                const parts = resString.split('@');
+                return {
+                    reds: parts[0].split(',').map(n=>parseInt(n)),
+                    blue: parts[1] ? parseInt(parts[1].split(',')[0]) : null
+                };
+            }
+            return {
+                reds: nums.slice(0,6),
+                blue: nums[6]
+            };
+        }
+        
+        // ========== 显示开奖号码 ==========
+        function showLatest(data){
+            lotteryInfoEl.innerHTML = `
+                <div><b>期号:</b> ${data.issue}</div>
+                <div><b>开奖日期:</b> ${data.date}</div>
+            `;
+            
+            renderBalls(data.reds, data.blue, latestBallsEl);
+            
+            lotteryInfoEl.classList.remove('hidden');
+            latestBallsEl.classList.remove('hidden');
+            document.getElementById('lastUpdate').textContent = 
+                '更新于 ' + new Date().toLocaleTimeString();
+        }
+        
+        // ========== 渲染号码球 ==========
+        function renderBalls(reds, blue, container){
+            container.innerHTML = '';
+            reds.forEach(num => {
+                const ball = createBall(num, 'red');
+                container.appendChild(ball);
+            });
+            if(blue !== null){
+                const ball = createBall(blue, 'blue');
+                container.appendChild(ball);
+            }
+        }
+        
+        function createBall(num, type){
+            const ball = document.createElement('div');
+            ball.className = `ball ${type}`;
+            ball.textContent = num < 10 ? '0' + num : num;
+            return ball;
+        }
+        
+        // ========== 获取历史开奖记录 ==========
+        async function fetchHistory(){
+            try {
+                const apiUrl = `${API_BASE_URL}/lottery/history?lotteryId=ssq&page=1&pageSize=20`;
+                
+                const res = await fetch(apiUrl);
+                if(!res.ok) throw new Error('获取历史记录失败');
+                
+                const data = await res.json();
+                
+                if(data.code === 0 && data.data && data.data.lotteryResList){
+                    historyList = data.data.lotteryResList;
+                    populateHistorySelect();
+                    historyArea.classList.remove('hidden');
+                }else{
+                    throw new Error('数据结构错误');
+                }
+                
+            }catch(e){
+                console.error('History fetch error:', e);
+                showToast('历史数据获取失败');
+            }
+        }
+        
+        // ========== 填充历史选择器 ==========
+        function populateHistorySelect(){
+            historySelect.innerHTML = '<option value="">-- 选择期号 --</option>';
+            historyList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.lottery_no;
+                option.text = `${item.lottery_no} (${item.lottery_date})`;
+                historySelect.appendChild(option);
+            });
+        }
+        
+        // ========== 加载历史记录所选期号 ==========
+        async function loadHistoryLottery(){
+            const selectedIssue = historySelect.value;
+            if(!selectedIssue) return;
+            
+            const item = historyList.find(h => h.lottery_no === selectedIssue);
+            if(!item) return;
+            
+            const parsed = parseLotteryRes(item.lottery_res);
+            
+            latest = {
+                date: item.lottery_date || item.lottery_exdate || '',
+                issue: item.lottery_no,
+                reds: parsed.reds,
+                blue: parsed.blue,
+                timestamp: Date.now()
+            };
+            
+            showLatest(latest);
+            saveToStorage();
+            showToast(`✓ 已切换到期号 ${selectedIssue}`);
+        }
+        
+        // ========== 手动设置开奖号码 ==========
+        function setManualLottery(){
+            const val = manualInputEl.value.trim();
+            if(!val){
+                showToast('请输入号码');
+                return;
+            }
+            
+            const parsed = parseNumber(val);
+            if(!parsed){
+                showToast('格式错误！示例：01 05 09 14 19 33+12');
+                return;
+            }
+            
+            latest = {
+                date: new Date().toLocaleDateString(),
+                reds: parsed.reds,
+                blue: parsed.blue,
+                timestamp: Date.now()
+            };
+            
+            showLatest(latest);
+            saveToStorage();
+            showToast('✓ 已设置');
+        }
+        
+        // ========== 解析号码字符串 ==========
+        function parseNumber(str){
+            if(!str) return null;
+            str = str.replace(/，/g,',').trim();
+            
+            let reds = [], blue = null;
+            
+            if(str.includes('+')){
+                const parts = str.split('+');
+                reds = parts[0].split(/[ ,]+/).filter(Boolean).map(n=>parseInt(n));
+                blue = parseInt(parts[1]||'');
+            }else if(str.includes(',')){
+                const nums = str.split(',').filter(Boolean).map(n=>parseInt(n));
+                if(nums.length===7){
+                    reds = nums.slice(0,6);
+                    blue = nums[6];
+                }
+            }else{
+                const nums = str.split(/\s+/).filter(Boolean).map(n=>parseInt(n));
+                if(nums.length===7){
+                    reds = nums.slice(0,6);
+                    blue = nums[6];
+                }
+            }
+            
+            if(reds.length!==6||isNaN(blue)) return null;
+            if(reds.some(n=>isNaN(n)||n<1||n>33)) return null;
+            if(blue<1||blue>16) return null;
+            
+            return {reds, blue};
+        }
+        
+        // ========== 保存到本地存储 ==========
+        function saveToStorage(){
+            if(latest){
+                localStorage.setItem('ssq_latest_15_tickets', JSON.stringify(latest));
+            }
+        }
+        
+        // ========== 检查中奖等级 ==========
+        function checkWin(ticket){
+            if(!latest) return {error:'未设置开奖号码'};
+            
+            const hitRed = ticket.reds.filter(n => latest.reds.includes(n)).length;
+            const hitBlue = ticket.blue === latest.blue;
+            
+            let level = null;
+            let baseAmount = 0;
+            
+            // 双色球中奖规则
+            switch(true){
+                case(hitRed===6&&hitBlue):level='一等奖';break;
+                case(hitRed===6&&!hitBlue):level='二等奖';break;
+                case(hitRed===5&&hitBlue):level='三等奖';baseAmount=3000;break;
+                case(hitRed===5&&!hitBlue):case(hitRed===4&&hitBlue):level='四等奖';baseAmount=200;break;
+                case(hitRed===4&&!hitBlue):case(hitRed===3&&hitBlue):level='五等奖';baseAmount=10;break;
+                case(hitBlue):level='六等奖';baseAmount=5;break;
+            }
+            
+            // 福运奖：3个红球（限时活动，无蓝球要求）
+            if(!level && hitRed===3){
+                level='福运奖';
+                baseAmount=5;
+            }
+            
+            let tax = 0, net = baseAmount || 0;
+            if(baseAmount && baseAmount > 10000){
+                tax = Math.round(baseAmount * 0.2);
+                net = baseAmount - tax;
+            }
+            
+            return {hitRed,hitBlue,level,baseAmount,tax,net};
+        }
+        
+        // ========== 核验所有号码 ==========
+        function checkTickets(){
+            if(!latest){
+                showToast('请先获取或输入开奖号码');
+                document.getElementById('fetchBtn').scrollIntoView({behavior:'smooth'});
+                return;
+            }
+            
+            resultsSection.style.display = 'block';
+            
+            const results = [];
+            let winCount = 0;
+            let totalAmount = 0;
+            
+            YOUR_TICKETS.forEach((raw,idx)=>{
+                const parsed = parseNumber(raw);
+                if(!parsed){
+                    results.push({raw,error:true});
+                    return;
+                }
+                
+                const winInfo = checkWin(parsed);
+                if(winInfo.level){
+                    winCount++;
+                    totalAmount += (winInfo.baseAmount||0);
+                }
+                results.push({...winInfo,raw,parsed,index:idx+1});
+            });
+            
+            matchCountEl.textContent = winCount;
+            
+            // 统计信息
+            let statsHtml = '';
+            if(winCount>0){
+                statsHtml = `
+                    <div class="stats-card">
+                        <div style="font-size:16px;margin-bottom:4px;">恭喜中奖!</div>
+                        <div class="stat-val">${formatMoney(totalAmount)}</div>
+                        <div class="stat-lbl">总奖金</div>
+                    </div>
+                `;
+            }
+            statsContent.innerHTML = statsHtml;
+            
+            // 渲染结果列表
+            resultsList.innerHTML = '';
+            results.forEach(r=>{
+                if(r.error){
+                    const item = document.createElement('div');
+                    item.className = 'result-item';
+                    item.innerHTML = '<div style="color:#e53e3e">❌ 解析错误</div>';
+                    resultsList.appendChild(item);
+                    return;
+                }
+                
+                // 号码球
+                const ballsDiv = createBallsDiv(r.parsed.reds,r.parsed.blue,r.hitRed,r.hitBlue);
+                
+                // 状态
+                let statusHtml = '';
+                if(r.level){
+                    let amountText = '';
+                    if(r.baseAmount){
+                        amountText = ` | 金额:${formatMoney(r.baseAmount)}`;
+                        if(r.tax)amountText+=` (税:${formatMoney(r.tax)})`;
+                    }
+                    statusHtml = `<div class="status-win">🎉 ${r.level}${amountText}</div>`;
+                }else{
+                    statusHtml = '<div class="status-lose">😅 未中奖</div>';
+                }
+                
+                // 详情
+                const detailHtml = `
+                    <div class="detail">
+                        红球命中：<strong style="color:#e53e3e">${r.hitRed}/6</strong> 
+                        | 蓝球:${r.hitBlue?'<span style="color:green">✔</span>':'✘'}
+                    </div>
+                `;
+                
+                const item = document.createElement('div');
+                item.className = 'result-item';
+                item.innerHTML = `<div>第${r.index}注</div>`;
+                item.appendChild(ballsDiv);
+                item.appendChild(statusHtml);
+                item.appendChild(detailHtml);
+                
+                if(r.level){
+                    item.style.borderLeft = '4px solid #ffc107';
+                }
+                
+                resultsList.appendChild(item);
+            });
+            
+            resultsSection.scrollIntoView({behavior:'smooth'});
+        }
+        
+        // ========== 创建号码球组 ==========
+        function createBallsDiv(reds,blue,hitRed,hitBlue){
+            const div = document.createElement('div');
+            div.className = 'mini-balls';
+            
+            reds.forEach(num=>{
+                const ball = document.createElement('div');
+                ball.className = `mini-ball red ${latest.reds.includes(num)?'matched':''}`;
+                ball.textContent = num<10?'0'+num:num;
+                div.appendChild(ball);
+            });
+            
+            const blueBall = document.createElement('div');
+            blueBall.className = `mini-ball blue ${latest.blue===blue?'matched':''}`;
+            blueBall.textContent = blue<10?'0'+blue:blue;
+            div.appendChild(blueBall);
+            
+            return div;
+        }
+        
+        // ========== 格式化金额 ==========
+        function formatMoney(num){
+            if(num==null)return'¥0';
+            return '¥'+Number(num).toLocaleString();
+        }
+        
+        // ========== 提示框 ==========
+        function showToast(msg){
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            setTimeout(()=>toastEl.classList.remove('show'),2000);
+        }
+        
+        // ========== F12 快捷键 ==========
+        document.addEventListener('keydown',e=>{
+            if(e.key==='F12'){
+                e.preventDefault();
+                checkTickets();
+            }
+        });
+    </script>
+</body>
+</html>
