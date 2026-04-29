@@ -4,947 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>双色球查询工具</title>
-    <!-- Google Fonts: 思源幼黑体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100;300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Noto Sans SC','PingFang SC',-apple-system,BlinkMacSystemFont,sans-serif;background:#e0e5ec;min-height:100vh}
+        :root{--bg-light:#e0e5ec;--bg-dark:#c9d1de;--text-primary:#4a5568;--text-secondary:#718096;--accent-red:#dc3545;--accent-blue:#007bff}
+        .container{max-width:520px;margin:0 auto;padding:24px 16px 140px 16px;position:relative}
         
-        body {
-            font-family: 'Noto Sans SC', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #e0e5ec 0%, #c9d1de 100%);
-            min-height: 100vh;
-        }
+        /* 头部 */
+        .header{text-align:center;padding:32px 24px 28px;background:var(--bg-light);border-radius:24px;margin-bottom:20px;box-shadow:15px 15px 30px var(--bg-dark),-15px -15px 30px #fff}
+        .header h1{font-size:32px;font-weight:700;color:#667eea;margin-bottom:8px}
+        .header p{font-size:15px;color:var(--text-secondary)}
         
-        /* ════════════════════════════════════════════════════════
-           Pure Neumorphism Style (新拟态)
-        ════════════════════════════════════════════════════════ */
+        /* 卡片 - 移除 backdrop-filter 提升性能 */
+        .card{background:#fff;border-radius:20px;padding:20px;margin-bottom:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1);border:1px solid rgba(102,126,234,0.1)}
+        .card-title{font-size:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:#fbbf24}
         
-        :root {
-            --bg-light: #e0e5ec;
-            --bg-dark: #c9d1de;
-            --text-primary: #4a5568;
-            --text-secondary: #718096;
-            --accent-red: #dc3545;
-            --accent-blue: #007bff;
-            --shadow-light: rgba(255, 255, 255, 0.9);
-            --shadow-dark: #bebcc6;
-            --glow-red: rgba(220, 53, 69, 0.6);
-            --glow-blue: rgba(0, 123, 255, 0.6);
-            --glow-gold: rgba(251, 191, 36, 0.8);
-        }
+        /* 按钮 */
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:transform 0.2s;white-space:nowrap;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;box-shadow:0 4px 12px rgba(102,126,234,0.3)}
+        .action-btn:active{transform:translateY(0)}
+        .action-btn.secondary{background:linear-gradient(135deg,#06b6d4,#0ea5e9)}
+        .action-btn.done{background:linear-gradient(135deg,#22c55e,#16a34a)}
         
-        /* ════════════════════════════════════════════════════════
-           柔和背景动画
-        ════════════════════════════════════════════════════════ */
-        
-        /* 渐变流动效果 */
-        @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        /* 文字发光动画 */
-        @keyframes text-glow {
-            0%, 100% { text-shadow: 0 0 8px rgba(102, 126, 234, 0.4); }
-            50% { text-shadow: 0 0 20px rgba(102, 126, 234, 0.7), 0 0 30px rgba(102, 126, 234, 0.4); }
-        }
-        
-        /* 球体呼吸 */
-        @keyframes ball-breath {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        /* 按压反馈 */
-        @keyframes neumorph-press {
-            0% { box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light); }
-            50% { box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light); }
-            100% { box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light); }
-        }
-        
-        /* ════════════════════════════════════════════════════════
-           入场动画
-        ════════════════════════════════════════════════════════ */
-        @keyframes slide-in-up {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes bounce-in {
-            0% { opacity: 0; transform: scale(0.85) translateY(20px); }
-            40% { opacity: 1; transform: scale(1.02) translateY(-5px); }
-            70% { transform: scale(0.98); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        
-        body {
-            font-family: 'Noto Sans SC', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #e0e5ec 0%, #d1d9e6 50%, #c9d1de 100%);
-            background-size: 200% 200%;
-            animation: gradient-shift 15s ease infinite;
-            min-height: 100vh;
-            color: var(--text-primary);
-        }
-        
-        /* 网格背景 - 柔和风格 */
-        .container {
-            max-width: 520px;
-            margin: 0 auto;
-            padding: 24px 16px 140px 16px;
-            position: relative;
-            z-index: 10;
-        }
-        
-        /* ════════════════════════════════════════════════════════
-           Header - Pure Neumorphism
-        ════════════════════════════════════════════════════════ */
-        .header {
-            text-align: center;
-            padding: 32px 24px 28px;
-            background: var(--bg-light);
-            border-radius: 24px;
-            margin-bottom: 20px;
-            box-shadow: 
-                15px 15px 30px var(--shadow-dark),
-                -15px -15px 30px var(--shadow-light);
-            animation: slide-in-up 0.6s ease-out;
-        }
-        
-        .header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 8px;
-            letter-spacing: 2px;
-            animation: text-glow 3s ease-in-out infinite;
-            text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
-        }
-        
-        .header p {
-            font-size: 15px;
-            color: var(--text-secondary);
-            opacity: 0.85;
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
-        }
-        
-        /* 赛博卡片 */
-        .card {
-            background: linear-gradient(
-                145deg,
-                rgba(15, 23, 42, 0.6),
-                rgba(30, 41, 59, 0.6)
-            );
-            backdrop-filter: blur(24px) saturate(160%);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.6),
-                inset 0 1px 0 rgba(255, 255, 255, 0.05),
-                0 0 40px rgba(138, 43, 226, 0.1);
-            border: 1px solid rgba(138, 43, 226, 0.3);
-            position: relative;
-            overflow: hidden;
-            animation: slide-in-up 0.5s ease-out;
-            animation-fill-mode: both;
-        }
-        
-        .card:nth-child(2) { animation-delay: 0.1s; }
-        .card:nth-child(3) { animation-delay: 0.2s; }
-        .card:nth-child(4) { animation-delay: 0.3s; }
-        
-        .card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(138, 43, 226, 0.05),
-                transparent
-            );
-            animation: card-shimmer 6s ease-in-out infinite;
-        }
-        
-        @keyframes card-shimmer {
-            0%, 100% { left: -100%; }
-            50% { left: 100%; }
-        }
-        
-        .card-title {
-            font-size: 16px;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            color: #fbbf24;
-            text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
-        }
-        
-        .badge {
-            background: linear-gradient(135deg, rgba(138, 43, 226, 0.6), rgba(59, 130, 246, 0.6));
-            color: #fff;
-            padding: 5px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            border: 1px solid rgba(138, 43, 226, 0.5);
-            box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
-        }
-        
-        /* 按钮 - 霓虹辉光 */
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            white-space: nowrap;
-            background: linear-gradient(135deg, rgba(138, 43, 226, 0.6), rgba(59, 130, 246, 0.6));
-            color: #fff;
-            border: 1px solid rgba(138, 43, 226, 0.5);
-            box-shadow: 0 0 20px rgba(138, 43, 226, 0.4);
-        }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(138, 43, 226, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
-        }
-        
-        .action-btn:active { transform: translateY(0); }
-        
-        .action-btn.secondary {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.5), rgba(14, 165, 233, 0.5));
-            border-color: rgba(6, 182, 212, 0.5);
-            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
-        }
-        
-        .action-btn.done {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.7), rgba(16, 185, 129, 0.7));
-            border-color: rgba(34, 197, 94, 0.6);
-            box-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
-        }
-        
-        /* 号码球 - 霓虹球体 */
-        .ball-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 14px;
-        }
-        
-        .ball {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 17px;
-            color: #fff;
-            box-shadow: 
-                0 8px 24px rgba(0, 0, 0, 0.4),
-                inset 0 4px 8px rgba(255, 255, 255, 0.3),
-                0 0 30px currentColor;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-        
-        .ball.red {
-            background: linear-gradient(145deg, #ef4444, #dc2626);
-            color: #ffffff;
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4), inset 0 4px 8px rgba(255, 255, 255, 0.3);
-        }
-        
-        .ball.blue {
-            background: linear-gradient(145deg, #3b82f6, #2563eb);
-            color: #ffffff;
-            width: 48px; height: 48px;
-            font-size: 18px;
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4), inset 0 4px 8px rgba(255, 255, 255, 0.3);
-        }
-        
-        .ball.matched {
-            animation: matched-glow 0.6s ease-out;
-            box-shadow: 
-                0 0 50px rgba(251, 191, 36, 0.9),
-                0 0 100px rgba(251, 191, 36, 0.6),
-                inset 0 4px 8px rgba(255, 255, 255, 0.6);
-            border: 3px solid #fbbf24;
-            z-index: 10;
-            transform: scale(1.2);
-        }
-        
-        @keyframes matched-glow {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1.2); }
-        }
+        /* 号码球 */
+        .ball-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+        .ball{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+        .ball.red{background:linear-gradient(145deg,#ef4444,#dc2626)}
+        .ball.blue{background:linear-gradient(145deg,#3b82f6,#2563eb);width:48px;height:48px;font-size:18px}
+        .ball.matched{animation:matched-glow 0.6s ease-out;box-shadow:0 0 50px rgba(251,191,36,0.9);border:3px solid #fbbf24;z-index:10}
+        @keyframes matched-glow{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
         
         /* 信息行 */
-        .info-row {
-            font-size: 14px;
-            color: rgba(224, 230, 237, 0.85);
-            margin-top: 14px;
-            padding: 16px;
-            background: linear-gradient(145deg, rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.7));
-            backdrop-filter: blur(12px);
-            border-radius: 14px;
-            line-height: 2;
-            border: 1px solid rgba(138, 43, 226, 0.3);
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+        .info-row{font-size:14px;color:#e0e6ed;margin-top:14px;padding:16px;background:linear-gradient(145deg,#0f172a,#1e293f);border-radius:14px;line-height:2;border:1px solid rgba(138,43,226,0.3)}
+        .info-row b{color:#38bdf8}
+        
+        /* 期号选择器 */
+        .issue-selector{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#fff;border-radius:14px;cursor:pointer;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+        .issue-label{font-size:15px;font-weight:600;color:var(--text-primary)}
+        .issue-value{font-size:17px;font-weight:700;color:#667eea}
+        .issue-selector-arrow{font-size:12px;color:var(--text-secondary);opacity:.7}
+        
+        /* 弹窗系统 */
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:10000;display:none;align-items:center;justify-content:center}
+        .modal-overlay.show{display:flex}
+        .modal-box{background:#fff;border-radius:20px;width:90%;max-width:400px;max-height:75vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+        .modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;font-weight:700;font-size:16px;border-bottom:1px solid rgba(102,126,234,0.1)}
+        .modal-close{font-size:28px;color:var(--text-secondary);cursor:pointer;line-height:1}
+        .modal-scroll{max-height:calc(75vh - 60px);overflow-y:auto}
+        .modal-item{padding:16px 20px;border-bottom:1px solid rgba(102,126,234,0.1);cursor:pointer;font-size:15px;color:var(--text-primary);transition:background 0.2s}
+        .modal-item:active{background:rgba(102,126,234,0.1)}
+        
+        /* 核验结果 */
+        #resultsSection{display:none}
+        .result-summary-bar{display:flex;align-items:center;justify-content:space-between;padding:20px 20px;background:linear-gradient(135deg,#fbbf24,#f59e0b);border-radius:18px;margin-top:16px;box-shadow:0 10px 30px rgba(251,191,36,0.4)}
+        .result-summary-title{font-size:13px;color:#854d0e;margin-bottom:4px;font-weight:600}
+        .result-summary-amount{font-size:32px;font-weight:900;color:#c2410c}
+        .result-no-win{text-align:center;padding:24px 20px;color:var(--text-secondary);font-size:14px;margin-top:16px;background:#f7fafc;border-radius:16px}
+        
+        /* 中奖详情 */
+        .detail-win-item{background:#fff;border-radius:16px;padding:16px;margin-bottom:12px}
+        .level-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;padding:6px 14px;border-radius:10px;font-size:13px;font-weight:800}
+        .detail-mini-ball{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+        .detail-mini-ball.red{background:linear-gradient(145deg,#ef4444,#dc2626)}
+        .detail-mini-ball.blue{background:linear-gradient(145deg,#3b82f6,#2563eb)}
+        .detail-mini-ball.matched{border:3px solid #fbbf24}
+        
+        /* 底部固定栏 */
+        .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#0a0e27,#1a1f3c);border-top:1px solid rgba(0,255,255,0.2);padding:16px 18px;z-index:9900;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+        .btn-check{background:linear-gradient(135deg,#06b6d4,#0ea5e9);color:#fff;padding:18px;border:none;border-radius:16px;font-size:18px;font-weight:900;cursor:pointer;width:100%;box-shadow:0 8px 24px rgba(6,182,212,0.3)}
+        .btn-check:active{transform:translateY(2px);box-shadow:0 4px 12px rgba(6,182,212,0.2)}
+        
+        /* Toast */
+        .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,14,39,0.95);color:#e0e6ed;padding:16px 28px;border-radius:16px;font-size:14px;z-index:10001;display:none;text-align:center;pointer-events:none;border:1px solid rgba(0,255,255,0.3)}
+        .toast.show{display:block;animation:toast-pop 0.3s ease-out}
+        @keyframes toast-pop{0%{transform:translate(-50%,-50%) scale(.8);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+        .hidden{display:none}
+        
+        /* 我的号码区 */
+        .my-nums-header{display:flex;align-items:center;justify-content:space-between}
+        .badge{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700}
+        .num-chip{background:linear-gradient(145deg,rgba(102,126,234,.2),rgba(118,75,162,.2));border:1px solid rgba(102,126,234,0.4);border-radius:24px;padding:6px 14px;font-size:12px;color:#e0e6ed;margin-right:6px;margin-bottom:6px;display:inline-block}
+        .my-nums-collapse{overflow:hidden;max-height:0;opacity:0;margin-top:0;transition:max-height 0.3s ease,opacity 0.3s ease}
+        .my-nums-collapse.open{max-height:1600px;opacity:1;margin-top:18px}
+        .tickets-textarea{width:100%;min-height:100px;padding:14px 16px;border:1px solid rgba(102,126,234,0.4);border-radius:14px;font-size:12px;line-height:1.8;resize:none;background:rgba(102,126,234,0.1);color:#e0e6ed;font-family:monospace;margin-bottom:12px}
+        .tabs-header{display:flex;border-bottom:2px solid rgba(102,126,234,0.3);margin-bottom:14px}
+        .tab-btn{flex:1;padding:12px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:700;color:rgba(224,230,237,0.6);transition:all 0.2s}
+        .tab-btn.active{color:#a855f7}
+        .tab-btn.active::after{content:'';display:block;height:2px;background:#a855f7;margin-top:4px}
+        .tab-content{display:none}
+        .tab-content.active{display:block}
+        .input-area{padding:16px;background:rgba(102,126,234,0.1);border-radius:16px;border:1px solid rgba(102,126,234,0.3)}
+        .input-label{font-size:12px;color:rgba(224,230,237,0.8);margin-bottom:8px;display:block}
+        .text-input{width:100%;padding:14px 16px;border:2px solid rgba(102,126,234,0.4);border-radius:14px;font-size:14px;outline:none;margin-bottom:8px;background:rgba(102,126,234,0.1);color:#e0e6ed}
+        .upload-zone{padding:28px;background:rgba(102,126,234,0.1);border:2px dashed rgba(102,126,234,0.5);border-radius:18px;text-align:center;cursor:pointer;margin-bottom:12px}
+        .upload-zone:active{background:rgba(102,126,234,0.15);border-color:#06b6d4}
+        .selected-files{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+        .file-item{position:relative;width:80px;height:80px;border-radius:14px;overflow:hidden;border:2px solid rgba(102,126,234,0.4)}
+        .file-item img{width:100%;height:100%;object-fit:cover}
+        .file-remove{position:absolute;top:4px;right:4px;width:22px;height:22px;background:#ef4444;color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+        .analyze-result-box{background:rgba(34,197,94,0.15);padding:14px 16px;border-radius:14px;margin-top:10px;border-left:4px solid #22c55e}
+        .analyze-result-box.error{background:rgba(239,68,68,0.15);border-left-color:#ef4444}
+        .analyze-result-box .ar-label{font-size:12px;color:rgba(224,230,237,0.8);margin-bottom:4px}
+        .analyze-result-box .ar-nums{font-size:16px;font-weight:800;color:#e0e6ed}
+        .divider{border:none;border-top:1px dashed rgba(102,126,234,0.4);margin:16px 0}
+        
+        /* 移动端优化 */
+        @media(max-width:768px){
+            .container{padding:16px 12px 130px 12px}
+            .header{padding:24px 16px;margin-bottom:16px}
+            .header h1{font-size:26px}
+            .card{padding:16px;margin-bottom:12px}
+            .btn-check{padding:16px;font-size:16px}
+            .bottom-bar{padding:12px 14px}
+            .modal-box{width:95%;max-width:360px}
+            .ball{width:38px;height:38px;font-size:15px}
+            .ball.blue{width:42px;height:42px;font-size:16px}
+            .issue-selector{padding:14px 16px}
         }
         
-        .info-row b { color: #38bdf8; font-size: 15px; }
-        
-        /* ════════════════════════════════════════════════════════
-           期号选择器 - Neumorphism
-        ════════════════════════════════════════════════════════ */
-        .issue-selector {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 18px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px) saturate(180%);
-            border: 1px solid var(--glass-border);
-            border-radius: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 16px;
-            box-shadow: 
-                8px 8px 16px var(--neumorph-dark),
-                -8px -8px 16px var(--neumorph-light);
+        /* 动画偏好 */
+        @media(prefers-reduced-motion:reduce){
+            *,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;scroll-behavior:auto!important}
         }
-        
-        .issue-selector:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                10px 10px 20px var(--neumorph-dark),
-                -10px -10px 20px var(--neumorph-light),
-                0 0 20px rgba(102, 126, 234, 0.2);
-        }
-        
-        .issue-selector:active {
-            box-shadow: 
-                inset 4px 4px 8px var(--neumorph-dark),
-                inset -4px -4px 8px var(--neumorph-light);
-        }
-        
-        .issue-label {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-primary);
-            letter-spacing: 0.05em;
-        }
-        
-        .issue-value {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
-        }
-        
-        .issue-selector-arrow { font-size: 12px; color: var(--text-secondary); opacity: 0.7; }
-
-        /* ════════════════════════════════════════════════════════
-           弹窗系统 - Glassmorphism
-        ════════════════════════════════════════════════════════ */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(232, 223, 245, 0.7);
-            backdrop-filter: blur(20px) saturate(180%);
-            z-index: 10000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal-overlay.show { display: flex; }
-        
-        .modal-box {
-            background: var(--glass-bg);
-            border-radius: 24px;
-            width: 90%;
-            max-width: 400px;
-            max-height: 75vh;
-            overflow: hidden;
-            box-shadow: 
-                0 30px 80px rgba(31, 38, 135, 0.2),
-                0 0 60px rgba(102, 126, 234, 0.15),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--glass-border);
-            animation: modal-slide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform: translateY(0);
-        }
-        
-        @keyframes modal-slide {
-            from { opacity: 0; transform: translateY(50px) scale(0.85); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 24px;
-            border-bottom: 1px solid rgba(102, 126, 234, 0.15);
-            font-weight: 700;
-            font-size: 17px;
-            background: linear-gradient(180deg, rgba(102, 126, 234, 0.1), transparent);
-            color: var(--accent-color);
-            text-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .modal-close {
-            font-size: 32px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            line-height: 1;
-            margin-left: 10px;
-            transition: all 0.2s;
-            font-weight: 300;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        
-        .modal-close:hover { 
-            color: var(--accent-color); 
-            transform: rotate(90deg) scale(1.1);
-            background: rgba(102, 126, 234, 0.1);
-            text-shadow: 0 0 15px var(--glow-color);
-        }
-        
-        .modal-scroll { max-height: calc(75vh - 90px); overflow-y: auto; }
-        
-        .modal-item {
-            padding: 18px 24px;
-            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-        
-        .modal-item:last-child {
-            border-bottom: none;
-        }
-        
-        .modal-item:hover {
-            background: linear-gradient(145deg, rgba(102, 126, 234, 0.08), rgba(102, 126, 234, 0.03));
-            transform: translateX(4px);
-            box-shadow: inset 2px 0 8px rgba(102, 126, 234, 0.1);
-        }
-        
-        .modal-item:active {
-            background: rgba(102, 126, 234, 0.12);
-            transform: translateX(2px) scale(0.98);
-        }
-        
-        /* 滚动条美化 */
-        .modal-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .modal-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        .modal-scroll::-webkit-scrollbar-thumb {
-            background: rgba(102, 126, 234, 0.3);
-            border-radius: 3px;
-        }
-        
-        .modal-scroll::-webkit-scrollbar-thumb:hover {
-            background: rgba(102, 126, 234, 0.5);
-        }
-        
-        /* ════════════════════════════════════════════════════════
-           核验结果区 - Glassmorphism
-        ════════════════════════════════════════════════════════ */
-        #resultsSection { display: none; }
-        
-        .result-summary-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 24px;
-            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
-            border-radius: 18px;
-            margin-top: 16px;
-            box-shadow: 
-                0 10px 35px rgba(251, 191, 36, 0.5),
-                inset 0 2px 0 rgba(255, 255, 255, 0.3),
-                0 0 50px rgba(251, 191, 36, 0.3);
-            animation: result-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* 金色流光效果 */
-        .result-summary-bar::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-            animation: shimmer 3s ease-in-out infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-        
-        @keyframes result-pop {
-            0% { transform: scale(0.8) translateY(20px); opacity: 0; }
-            50% { transform: scale(1.05) translateY(-5px); }
-            100% { transform: scale(1) translateY(0); opacity: 1; }
-        }
-        
-        .result-summary-left {}
-        
-        .result-summary-title { 
-            font-size: 13px; 
-            color: var(--text-secondary); 
-            margin-bottom: 3px; 
-            font-weight: 600; 
-            letter-spacing: 0.05em;
-        }
-        
-        .result-summary-amount { 
-            font-size: 36px; 
-            font-weight: 900; 
-            color: #e11d48; 
-            line-height: 1; 
-            text-shadow: 0 2px 8px rgba(225, 29, 72, 0.2);
-        }
-        
-        .result-summary-sub { 
-            font-size: 12px; 
-            color: var(--text-secondary); 
-            margin-top: 5px; 
-        }
-        
-        .result-no-win {
-            text-align: center;
-            padding: 24px 20px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-top: 16px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 
-                8px 8px 16px var(--neumorph-dark),
-                -8px -8px 16px var(--neumorph-light);
-        }
-        
-        /* 详情弹窗中奖条目 */
-        .detail-win-item {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 
-                8px 8px 16px var(--neumorph-dark),
-                -8px -8px 16px var(--neumorph-light);
-        }
-        
-        .detail-win-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .detail-win-index { font-size: 13px; color: var(--text-secondary); opacity: 0.7; }
-        
-        .level-badge {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            color: #000;
-            padding: 6px 14px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 800;
-            box-shadow: 0 3px 12px rgba(251, 191, 36, 0.4);
-            letter-spacing: 0.05em;
-            text-shadow: none;
-        }
-        
-        .detail-win-balls { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
-        
-        .detail-mini-ball { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); }
-        .detail-mini-ball.red { background: linear-gradient(145deg, #ef4444, #dc2626); }
-        .detail-mini-ball.blue { background: linear-gradient(145deg, #3b82f6, #2563eb); }
-        .detail-mini-ball.matched { border: 3px solid #fbbf24; transform: scale(1.25); box-shadow: 0 5px 16px rgba(251, 191, 36, 0.6); }
-        
-        .detail-win-info { font-size: 13px; color: var(--text-primary); line-height: 1.9; }
-        .detail-win-amount { font-size: 18px; font-weight: 800; color: #e11d48; margin-top: 10px; text-shadow: 0 0 15px rgba(225, 29, 72, 0.3); }
-        
-        /* 最近 3 期迷你列表 */
-        .recent-area { 
-            margin-top: 18px; 
-            padding-top: 16px; 
-            border-top: 1px solid rgba(102, 126, 234, 0.15); 
-        }
-        
-        .mini-recent-item { 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            padding: 12px 16px; 
-            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .mini-recent-item:hover {
-            background: linear-gradient(145deg, rgba(102, 126, 234, 0.05), rgba(102, 126, 234, 0.02));
-            transform: translateX(4px);
-        }
-        
-        .mini-recent-item:last-child { 
-            border-bottom: none; 
-        }
-        
-        .mini-recent-info { 
-            font-size: 12px; 
-            color: var(--text-secondary); 
-            min-width: 80px;
-            opacity: 0.8;
-        }
-        
-        .mini-recent-balls { display: flex; gap: 5px; flex-wrap: wrap; }
-        
-        .mini-recent-ball { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); }
-        .mini-recent-ball.red { background: linear-gradient(145deg, #ef4444, #dc2626); }
-        .mini-recent-ball.blue { background: linear-gradient(145deg, #3b82f6, #2563eb); }
-
-        /* ════════════════════════════════════════════════════════
-           底部固定栏 & Toast 提示
-        ════════════════════════════════════════════════════════ */
-        .bottom-bar {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: linear-gradient(180deg, rgba(10, 14, 39, 0.95), rgba(10, 14, 39, 1));
-            backdrop-filter: blur(24px) saturate(160%);
-            border-top: 1px solid rgba(0, 255, 255, 0.3);
-            padding: 16px 18px;
-            z-index: 9900;  /* 降低底部栏层级，让期号选择弹窗可以浮在其上 */
-            padding-bottom: calc(16px + env(safe-area-inset-bottom));
-            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
-        }
-        
-        .btn-check {
-            background: linear-gradient(135deg, #00ffff, #06b6d4);
-            color: #0a0e27;
-            padding: 18px;
-            border: none;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: 900;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 
-                0 10px 40px rgba(0, 255, 255, 0.5),
-                inset 0 2px 0 rgba(255, 255, 255, 0.3),
-                0 0 60px rgba(6, 182, 212, 0.4);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .btn-check::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -200%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transition: left 0.8s ease;
-        }
-        
-        .btn-check:hover::before { left: 200%; }
-        
-        .btn-check:hover {
-            transform: translateY(-3px);
-            box-shadow: 
-                0 15px 50px rgba(0, 255, 255, 0.6),
-                inset 0 2px 0 rgba(255, 255, 255, 0.4),
-                0 0 80px rgba(6, 182, 212, 0.5);
-        }
-        
-        .btn-check:active { transform: translateY(1px); }
-        
-        .toast {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(10, 14, 39, 0.95);
-            backdrop-filter: blur(24px) saturate(160%);
-            color: #e0e6ed;
-            padding: 18px 32px;
-            border-radius: 18px;
-            font-size: 15px;
-            z-index: 10001;
-            display: none;
-            max-width: 85%;
-            text-align: center;
-            pointer-events: none;
-            border: 1px solid rgba(0, 255, 255, 0.4);
-            box-shadow: 
-                0 15px 50px rgba(0, 0, 0, 0.7),
-                0 0 60px rgba(0, 255, 255, 0.3);
-        }
-        
-        .toast.show {
-            display: block;
-            animation: toast-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        @keyframes toast-pop {
-            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-            50% { transform: translate(-50%, -50%) scale(1.05); }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        
-        .hidden { display: none; }
-
-        /* ════════════════════════════════════════════════════════
-           我的号码折叠卡片 & Tabs 切换
-        ════════════════════════════════════════════════════════ */
-        .my-nums-header { display: flex; align-items: center; justify-content: space-between; }
-        .my-nums-title-wrap { display: flex; align-items: center; gap: 10px; }
-        .nums-preview { margin-top: 12px; }
-        .nums-chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
-        
-        .num-chip {
-            background: linear-gradient(145deg, rgba(138, 43, 226, 0.3), rgba(92, 33, 174, 0.3));
-            border: 1px solid rgba(138, 43, 226, 0.5);
-            border-radius: 24px;
-            padding: 6px 14px;
-            font-size: 12px;
-            color: #e0e6ed;
-            font-family: 'JetBrains Mono', monospace;
-            white-space: nowrap;
-            box-shadow: 
-                inset 0 2px 4px rgba(0, 0, 0, 0.3),
-                0 0 20px rgba(138, 43, 226, 0.3);
-            transition: all 0.3s ease;
-        }
-        
-        .num-chip:hover {
-            border-color: rgba(0, 255, 255, 0.7);
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 6px 20px rgba(0, 255, 255, 0.4);
-        }
-        
-        /* 折叠动画 */
-        .my-nums-collapse {
-            overflow: hidden;
-            max-height: 0;
-            opacity: 0;
-            margin-top: 0;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease, margin-top 0.35s ease;
-        }
-        
-        .my-nums-collapse.open {
-            max-height: 1600px;
-            opacity: 1;
-            margin-top: 18px;
-        }
-        
-        /* 号码文本框 - 等宽字体 */
-        .tickets-textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 16px 18px;
-            border: 1px solid rgba(138, 43, 226, 0.4);
-            border-radius: 16px;
-            font-size: 13px;
-            line-height: 2;
-            resize: none;
-            background: linear-gradient(145deg, rgba(138, 43, 226, 0.2), rgba(92, 33, 174, 0.2));
-            color: #e0e6ed;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 12px;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        
-        .tickets-textarea:focus {
-            outline: none;
-            border-color: rgba(0, 255, 255, 0.7);
-            box-shadow: 
-                inset 0 2px 8px rgba(0, 0, 0, 0.3),
-                0 0 30px rgba(138, 43, 226, 0.4);
-        }
-        
-        /* Tabs 标签页 - 赛博风格 */
-        .tabs-header { display: flex; border-bottom: 2px solid rgba(138, 43, 226, 0.4); margin-bottom: 16px; }
-        
-        .tab-btn {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            color: rgba(224, 230, 237, 0.6);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .tab-btn.active {
-            color: #a855f7;
-            text-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
-        }
-        
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px; left: 0; right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #a855f7, transparent);
-            border-radius: 2px;
-            animation: shimmer 2s ease-in-out infinite;
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
-        }
-        
-        .tab-btn:hover { color: rgba(224, 230, 237, 0.9); }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        /* 输入区域 - 全息卡片 */
-        .input-area {
-            padding: 18px;
-            background: linear-gradient(145deg, rgba(138, 43, 226, 0.15), rgba(92, 33, 174, 0.15));
-            border-radius: 18px;
-            border: 1px solid rgba(138, 43, 226, 0.4);
-            backdrop-filter: blur(12px);
-        }
-        
-        .input-label { font-size: 13px; color: rgba(224, 230, 237, 0.8); margin-bottom: 10px; display: block; letter-spacing: 0.05em; }
-        
-        .text-input {
-            width: 100%;
-            padding: 16px 18px;
-            border: 2px solid rgba(138, 43, 226, 0.4);
-            border-radius: 16px;
-            font-size: 15px;
-            outline: none;
-            font-family: inherit;
-            margin-bottom: 10px;
-            background: linear-gradient(145deg, rgba(138, 43, 226, 0.15), rgba(92, 33, 174, 0.15));
-            color: #e0e6ed;
-            transition: all 0.3s ease;
-        }
-        
-        .text-input:focus {
-            border-color: rgba(0, 255, 255, 0.7);
-            box-shadow: 
-                0 0 0 4px rgba(138, 43, 226, 0.15),
-                inset 0 2px 8px rgba(0, 0, 0, 0.2),
-                0 0 40px rgba(138, 43, 226, 0.4);
-        }
-        
-        /* 图片上传区域 - 光效边框 */
-        .upload-zone {
-            padding: 32px;
-            background: linear-gradient(145deg, rgba(138, 43, 226, 0.1), rgba(92, 33, 174, 0.1));
-            border: 2px dashed rgba(138, 43, 226, 0.5);
-            border-radius: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 14px;
-        }
-        
-        .upload-zone:hover {
-            background: linear-gradient(145deg, rgba(138, 43, 226, 0.15), rgba(92, 33, 174, 0.15));
-            border-color: rgba(0, 255, 255, 0.7);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
-        }
-        
-        .upload-icon-big { font-size: 44px; margin-bottom: 12px; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4)); }
-        .upload-hint { font-size: 14px; color: rgba(224, 230, 237, 0.7); letter-spacing: 0.05em; }
-        
-        .selected-files { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
-        
-        .file-item {
-            position: relative;
-            width: 88px;
-            height: 88px;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid rgba(138, 43, 226, 0.4);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-        }
-        
-        .file-item img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .file-remove {
-            position: absolute;
-            top: 6px; right: 6px;
-            width: 26px; height: 26px;
-            background: linear-gradient(145deg, #ef4444, #dc2626);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.5);
-            transition: all 0.3s ease;
-        }
-        
-        .file-remove:hover { transform: scale(1.15); box-shadow: 0 5px 16px rgba(239, 68, 68, 0.7); }
-        
-        /* AI 识别结果框 */
-        .analyze-result-box {
-            background: linear-gradient(145deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2));
-            padding: 15px 18px;
-            border-radius: 16px;
-            margin-top: 12px;
-            border-left: 4px solid #22c55e;
-            border: 1px solid rgba(34, 197, 94, 0.4);
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-        
-        .analyze-result-box.error {
-            background: linear-gradient(145deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
-            border-left-color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.4);
-        }
-        
-        .analyze-result-box .ar-label { font-size: 13px; color: rgba(224, 230, 237, 0.8); margin-bottom: 5px; }
-        .analyze-result-box .ar-nums { font-size: 17px; font-weight: 800; color: #e0e6ed; letter-spacing: 0.1em; }
-        
-        .divider { border: none; border-top: 1px dashed rgba(138, 43, 226, 0.4); margin: 18px 0; }
     </style>
 </head>
 <body>
-
 <div class="container">
-
     <!-- 标题 -->
     <div class="header">
         <h1>🎱 双色球查询工具</h1>
@@ -959,7 +146,6 @@
                 <span class="btn-icon">📋</span>详情
             </button>
         </div>
-        <!-- 中奖汇总 / 未中奖提示 -->
         <div id="summaryArea"></div>
     </div>
 
@@ -1012,7 +198,7 @@
     <div class="card">
         <!-- 头部：标题 + badge + 编辑按钮 -->
         <div class="my-nums-header">
-            <div class="my-nums-title-wrap">
+            <div class="my-nums-title-wrap" style="display:flex;align-items:center;gap:10px;">
                 <span style="font-size:15px;font-weight:600">🎫 我的号码</span>
                 <span class="badge" id="ticketCount">15</span>
             </div>
@@ -1023,7 +209,7 @@
         </div>
 
         <!-- 收起状态：号码 chip 概览 -->
-        <div class="nums-preview" id="numsPreview">
+        <div class="nums-preview" id="numsPreview" style="margin-top:12px;">
             <div class="nums-chips-wrap" id="numsChips"></div>
         </div>
 
@@ -1055,8 +241,8 @@
                     <label class="input-label">上传彩票截图，AI 自动识别号码</label>
                     <input type="file" id="imageInput" accept="image/*" multiple onchange="handleImageSelect(event)" style="display:none">
                     <div class="upload-zone" onclick="document.getElementById('imageInput').click()">
-                        <div class="upload-icon-big">📸</div>
-                        <div class="upload-hint">点击上传图片 (jpg / png)</div>
+                        <div style="font-size:40px;margin-bottom:10px">📸</div>
+                        <div style="font-size:14px;color:#a0aec0">点击上传图片 (jpg / png)</div>
                     </div>
                     <div id="selectedFiles" class="selected-files"></div>
                     <button id="analyzeBtn" class="action-btn" style="width:100%;justify-content:center" onclick="analyzeImages()">
@@ -1078,7 +264,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-// ─── 你的 15 注号码 ───────────────────────────────────────────
+// ─── 核心数据 ───────────────────────────────────────────
 const YOUR_TICKETS = [
     "01 05 09 14 19 33 12",
     "01 06 09 14 22 29 01",
@@ -1102,7 +288,7 @@ let latest = null, historyList = [], selectedImages = [], winningDetails = [];
 let lastFetchTime = 0, COOLDOWN = 30000;
 let isEditOpen = false;
 
-// ─── DOM ───────────────────────────────────────────────────────
+// ─── DOM 元素缓存 ───────────────────────────────────────
 const lotteryInfoEl    = document.getElementById('latestInfo');
 const latestBallsEl    = document.getElementById('latestBalls');
 const ticketsDisplayEl = document.getElementById('ticketsDisplay');
@@ -1123,7 +309,7 @@ const selectedFilesDiv = document.getElementById('selectedFiles');
 const imageInput       = document.getElementById('imageInput');
 const resultsSection   = document.getElementById('resultsSection');
 
-// ─── 初始化 ────────────────────────────────────────────────────
+// ─── 初始化 ───────────────────────────────────────────────────
 (function init(){
     ticketsDisplayEl.value = YOUR_TICKETS.join('\n');
     document.getElementById('ticketCount').textContent = YOUR_TICKETS.length;
@@ -1133,12 +319,11 @@ const resultsSection   = document.getElementById('resultsSection');
     if(cached){ latest = JSON.parse(cached); showLatest(latest); fetchHistoryList(); }
     else { setTimeout(fetchLatest, 500); }
 
-    // 默认收起结果区，但保留DOM
     resultsSection.style.display = 'none';
     showToast('已加载 ' + YOUR_TICKETS.length + ' 注号码 ✓');
 })();
 
-// ─── 我的号码 折叠控制 ─────────────────────────────────────────
+// ─── 我的号码 折叠控制 ────────────────────────────────────────
 function toggleMyNumbers(){
     isEditOpen = !isEditOpen;
     const collapse = document.getElementById('myNumsCollapse');
@@ -1152,8 +337,6 @@ function toggleMyNumbers(){
         preview.style.display  = 'none';
         icon.textContent = '✅';
         text.textContent = '完成';
-        btn.classList.add('done');
-        btn.classList.remove('action-btn');
         btn.className = 'action-btn done';
     } else {
         collapse.classList.remove('open');
@@ -1168,19 +351,20 @@ function toggleMyNumbers(){
 function renderChips(){
     const wrap = document.getElementById('numsChips');
     wrap.innerHTML = '';
-    YOUR_TICKETS.forEach(raw => {
+    for(let i=0; i<YOUR_TICKETS.length; i++){
+        const raw = YOUR_TICKETS[i];
         const nums = raw.trim().split(/\s+/);
-        if(nums.length < 7) return;
+        if(nums.length < 7) continue;
         const reds = nums.slice(0,6).map(n => n.padStart(2,'0')).join(' ');
         const blue = nums[6].padStart(2,'0');
         const chip = document.createElement('span');
         chip.className = 'num-chip';
         chip.textContent = `${reds} +${blue}`;
         wrap.appendChild(chip);
-    });
+    }
 }
 
-// ─── Tab 切换 ──────────────────────────────────────────────────
+// ─── Tab 切换 ─────────────────────────────────────────────────
 function switchTab(name, btnEl){
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btnEl.classList.add('active');
@@ -1188,17 +372,18 @@ function switchTab(name, btnEl){
     document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
 }
 
-// ─── 期号弹窗 ──────────────────────────────────────────────────
+// ─── 期号弹窗 ────────────────────────────────────────────────
 function showIssueModal(){
     if(!historyList.length){ showToast('请先刷新获取期号'); return; }
     issueModalList.innerHTML = '';
-    historyList.slice(0,8).forEach(item => {
+    for(let i=0; i<8 && i<historyList.length; i++){
+        const item = historyList[i];
         const div = document.createElement('div');
         div.className = 'modal-item' + (latest && latest.issue === item.lottery_no ? ' active' : '');
-        div.innerHTML = `<div class="modal-item-title">${item.lottery_no} 期</div><div class="modal-item-sub">${item.lottery_date}</div>`;
+        div.innerHTML = `<div>${item.lottery_no} 期</div>`;
         div.onclick = () => selectIssue(item.lottery_no);
         issueModalList.appendChild(div);
-    });
+    }
     issueModal.classList.add('show');
 }
 function closeIssueModal(e){ if(e && e.target !== e.currentTarget) return; issueModal.classList.remove('show'); }
@@ -1210,7 +395,7 @@ function selectIssue(no){
     showToast('✓ 已切换到 ' + no + ' 期');
 }
 
-// ─── 详情弹窗 ──────────────────────────────────────────────────
+// ─── 详情弹窗 ────────────────────────────────────────────────
 function showDetailModal(){
     if(!winningDetails.length){ showToast('暂无中奖详情'); return; }
 
@@ -1226,33 +411,37 @@ function showDetailModal(){
         <div style="font-size:13px;font-weight:600;color:#4a5568;margin-bottom:10px">共 ${winningDetails.length} 注中奖明细</div>
     `;
 
-    winningDetails.forEach(item => {
-        const ballsHtml = [...item.parsed.reds.map(n =>
-            `<div class="detail-mini-ball red ${latest.reds.includes(n) ? 'matched' : ''}">${n < 10 ? '0'+n : n}</div>`
-        ), `<div class="detail-mini-ball blue ${latest.blue === item.parsed.blue ? 'matched' : ''}">${item.parsed.blue < 10 ? '0'+item.parsed.blue : item.parsed.blue}</div>`].join('');
+    for(let i=0; i<winningDetails.length; i++){
+        const item = winningDetails[i];
+        const balls = [];
+        for(let j=0; j<item.parsed.reds.length; j++){
+            const n = item.parsed.reds[j];
+            balls.push(`<div class="detail-mini-ball red ${latest.reds.includes(n) ? 'matched' : ''}">${n < 10 ? '0'+n : n}</div>`);
+        }
+        balls.push(`<div class="detail-mini-ball blue ${latest.blue === item.parsed.blue ? 'matched' : ''}">${item.parsed.blue < 10 ? '0'+item.parsed.blue : item.parsed.blue}</div>`);
 
         html += `
             <div class="detail-win-item">
-                <div class="detail-win-header">
-                    <span class="detail-win-index">第 ${item.index} 注</span>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                    <span style="font-size:12px;color:#718096">第 ${item.index} 注</span>
                     <span class="level-badge">${item.level}</span>
                 </div>
-                <div class="detail-win-balls">${ballsHtml}</div>
-                <div class="detail-win-info">
+                <div style="display:flex;gap:4px;flex-wrap:wrap;margin:8px 0">${balls.join('')}</div>
+                <div style="font-size:12px;color:#4a5568;line-height:1.6">
                     红球命中 <strong style="color:#e53e3e">${item.hitRed}/6</strong>
-                    &nbsp;·&nbsp; 蓝球 ${item.hitBlue ? '<span style="color:#48bb78">✔</span>' : '<span>✘</span>'}
+                    · 蓝球 ${item.hitBlue ? '<span style="color:#48bb78">✔</span>' : '<span>✘</span>'}
                 </div>
-                ${item.baseAmount ? `<div class="detail-win-amount">${formatMoney(item.baseAmount)}${item.tax ? `<span style="font-size:11px;color:#a0aec0"> (税后 ${formatMoney(item.baseAmount - item.tax)})</span>` : ''}</div>` : ''}
+                ${item.baseAmount ? `<div style="font-size:16px;font-weight:700;color:#e53e38;margin-top:8px">${formatMoney(item.baseAmount)}</div>` : ''}
             </div>
         `;
-    });
+    }
 
     detailModalContent.innerHTML = html;
     detailModal.classList.add('show');
 }
 function closeDetailModal(e){ if(e && e.target !== e.currentTarget) return; detailModal.classList.remove('show'); }
 
-// ─── 获取最新开奖 ──────────────────────────────────────────────
+// ─── 获取最新开奖 ─────────────────────────────────────────────
 async function fetchLatest(){
     const now = Date.now();
     if(now - lastFetchTime < COOLDOWN){
@@ -1260,8 +449,7 @@ async function fetchLatest(){
         return;
     }
     fetchBtn.disabled = true;
-    fetchBtn.classList.add('loading');
-    fetchBtn.innerHTML = '<span class="btn-icon">⏳</span>获取中';
+    fetchBtn.innerHTML = '⏳ 获取中';
 
     try {
         const res = await fetch(`${API_BASE}?type=ssq&page=1&limit=8`, { headers:{'Accept':'application/json'} });
@@ -1271,10 +459,15 @@ async function fetchLatest(){
             const list = data.data.data && data.data.data.list ? data.data.data.list : [];
             if(!list.length) throw new Error('返回数据为空');
 
-            historyList = list.map(i => ({
-                lottery_no: i.code, lottery_date: i.day,
-                lottery_res: `${i.one},${i.two},${i.three},${i.four},${i.five},${i.six},${i.seven}`
-            }));
+            historyList = [];
+            for(let i=0; i<list.length; i++){
+                const item = list[i];
+                historyList.push({
+                    lottery_no: item.code, 
+                    lottery_date: item.day,
+                    lottery_res: `${item.one},${item.two},${item.three},${item.four},${item.five},${item.six},${item.seven}`
+                });
+            }
 
             const l = list[0];
             latest = { date:l.day, issue:l.code, reds:[+l.one,+l.two,+l.three,+l.four,+l.five,+l.six], blue:+l.seven, timestamp:Date.now() };
@@ -1285,7 +478,6 @@ async function fetchLatest(){
         showToast('刷新失败：' + e.message);
     } finally {
         fetchBtn.disabled = false;
-        fetchBtn.classList.remove('loading');
         fetchBtn.innerHTML = '<span class="btn-icon">🔄</span>刷新';
     }
 }
@@ -1296,19 +488,28 @@ async function fetchHistoryList(){
         if(!res.ok) return;
         const data = await res.json();
         const list = data.data && data.data.data && data.data.data.list ? data.data.data.list : [];
-        if(list.length) historyList = list.map(i => ({
-            lottery_no: i.code, lottery_date: i.day,
-            lottery_res: `${i.one},${i.two},${i.three},${i.four},${i.five},${i.six},${i.seven}`
-        }));
+        if(list.length) historyList = [];
+        for(let i=0; i<list.length; i++){
+            const item = list[i];
+            historyList.push({
+                lottery_no: item.code, 
+                lottery_date: item.day,
+                lottery_res: `${item.one},${item.two},${item.three},${item.four},${item.five},${item.six},${item.seven}`
+            });
+        }
     } catch(e){ console.warn('historyList fetch error', e); }
 }
 
 function loadSelectedIssue(no){
-    const item = historyList.find(h => h.lottery_no === no);
-    if(!item) return;
-    const p = parseLotteryRes(item.lottery_res);
-    latest = { date:item.lottery_date, issue:item.lottery_no, reds:p.reds, blue:p.blue, timestamp:Date.now() };
-    showLatest(latest); saveCache();
+    for(let i=0; i<historyList.length; i++){
+        const h = historyList[i];
+        if(h.lottery_no === no){
+            const p = parseLotteryRes(h.lottery_res);
+            latest = { date:h.lottery_date, issue:h.lottery_no, reds:p.reds, blue:p.blue, timestamp:Date.now() };
+            showLatest(latest); saveCache();
+            return;
+        }
+    }
 }
 
 function parseLotteryRes(s){
@@ -1329,7 +530,7 @@ function showLatest(d){
 
 function renderBalls(reds, blue, el){
     el.innerHTML = '';
-    reds.forEach(n => el.appendChild(mkBall(n,'red')));
+    for(let i=0; i<reds.length; i++) el.appendChild(mkBall(reds[i],'red'));
     if(blue != null) el.appendChild(mkBall(blue,'blue'));
 }
 function mkBall(n, type){
@@ -1339,7 +540,7 @@ function mkBall(n, type){
     return b;
 }
 
-// ─── 手动设置开奖号 ────────────────────────────────────────────
+// ─── 手动设置开奖号 ───────────────────────────────────────────
 function setManualLottery(){
     const val = document.getElementById('manualInput').value.trim();
     if(!val){ showToast('请输入号码'); return; }
@@ -1367,24 +568,27 @@ function parseNumber(str){
 
 function saveCache(){ if(latest) localStorage.setItem('ssq_latest_v2', JSON.stringify(latest)); }
 
-// ─── 图片处理 ──────────────────────────────────────────────────
+// ─── 图片处理 ────────────────────────────────────────────────
 function handleImageSelect(e){
-    Array.from(e.target.files).forEach(file => {
-        if(!file.type.startsWith('image/')) return;
+    const files = e.target.files;
+    for(let i=0; i<files.length; i++){
+        const file = files[i];
+        if(!file.type.startsWith('image/')) continue;
         const r = new FileReader();
         r.onload = ev => { selectedImages.push({file, dataUrl:ev.target.result}); renderFileList(); };
         r.readAsDataURL(file);
-    });
+    }
     imageInput.value = '';
 }
 function renderFileList(){
     selectedFilesDiv.innerHTML = '';
-    selectedImages.forEach((img,i) => {
+    for(let i=0; i<selectedImages.length; i++){
+        const img = selectedImages[i];
         const div = document.createElement('div');
         div.className = 'file-item';
-        div.innerHTML = `<img src="${img.dataUrl}"><button class="file-remove" onclick="removeImg(${i})">×</button>`;
+        div.innerHTML = `<img src="${img.dataUrl}" loading="lazy"><button class="file-remove" onclick="removeImg(${i})">×</button>`;
         selectedFilesDiv.appendChild(div);
-    });
+    }
 }
 function removeImg(i){ selectedImages.splice(i,1); renderFileList(); }
 
@@ -1392,7 +596,7 @@ async function analyzeImages(){
     if(!selectedImages.length){ showToast('请先上传图片'); return; }
     analyzeBtn.disabled = true;
     analyzeBtn.classList.add('loading');
-    analyzeBtn.innerHTML = '<span class="btn-icon">⏳</span>识别中…';
+    analyzeBtn.innerHTML = '⏳ 识别中…';
     analyzeResultDiv.className = 'analyze-result-box hidden';
     try {
         await new Promise(r => setTimeout(r, 1800));
@@ -1411,11 +615,11 @@ async function analyzeImages(){
     }
 }
 function genMock(){
-    const r=[]; while(r.length<6){ const n=~~(Math.random()*33)+1; if(!r.includes(n))r.push(n); }
-    return { reds:r.sort((a,b)=>a-b), blue:~~(Math.random()*16)+1 };
+    const r=[]; while(r.length<6){ const n=Math.floor(Math.random()*33)+1; if(!r.includes(n))r.push(n); }
+    return { reds:r.sort((a,b)=>a-b), blue:Math.floor(Math.random()*16)+1 };
 }
 
-// ─── 中奖判断 ──────────────────────────────────────────────────
+// ─── 中奖判断 ─────────────────────────────────────────────────
 function checkWin(t){
     const hr=t.reds.filter(n=>latest.reds.includes(n)).length, hb=t.blue===latest.blue;
     let level=null, base=0;
@@ -1424,14 +628,14 @@ function checkWin(t){
     else if(hr===5&&hb)      { level='三等奖'; base=3000; }
     else if(hr===5||hr===4&&hb){ level='四等奖'; base=200; }
     else if(hr===4||hr===3&&hb){ level='五等奖'; base=10; }
-    else if(hr===3)          { level='福运奖'; base=5; }  // 新增：中 3 个红球，固定奖金 5 元
+    else if(hr===3)          { level='福运奖'; base=5; }
     else if(hb)              { level='六等奖'; base=5; }
     let tax=0;
     if(base>10000){ tax=Math.round(base*.2); }
     return { hitRed:hr, hitBlue:hb, level, baseAmount:base, tax };
 }
 
-// ─── 一键核验 ──────────────────────────────────────────────────
+// ─── 一键核验 ────────────────────────────────────────────────
 function checkTickets(){
     if(!latest){ showToast('请先获取开奖号码'); return; }
 
@@ -1439,42 +643,40 @@ function checkTickets(){
     winningDetails = [];
     let winCount = 0, totalAmt = 0;
 
-    YOUR_TICKETS.forEach((raw, idx) => {
+    for(let i=0; i<YOUR_TICKETS.length; i++){
+        const raw = YOUR_TICKETS[i];
         const p = parseNumber(raw);
-        if(!p) return;
+        if(!p) continue;
         const w = checkWin(p);
         if(w.level){
             winCount++;
             totalAmt += w.baseAmount || 0;
-            winningDetails.push({ ...w, index:idx+1, raw, parsed:p });
+            winningDetails.push({ ...w, index:i+1, raw, parsed:p });
         }
-    });
+    }
 
     matchCountEl.textContent = winCount;
 
-    // ── 汇总区（只显示总金额）──
     if(winCount > 0){
         const totalTax = winningDetails.reduce((s,i)=>s+(i.tax||0),0);
         summaryArea.innerHTML = `
             <div class="result-summary-bar">
-                <div class="result-summary-left">
+                <div>
                     <div class="result-summary-title">🎉 恭喜！共 ${winCount} 注中奖</div>
                     <div class="result-summary-amount">${formatMoney(totalAmt)}</div>
-                    ${totalTax > 0 ? `<div class="result-summary-sub">税后 ${formatMoney(totalAmt - totalTax)}</div>` : ''}
+                    ${totalTax > 0 ? `<div style="font-size:11px;color:#854d0e;margin-top:3px">税后 ${formatMoney(totalAmt - totalTax)}</div>` : ''}
                 </div>
-                <div style="font-size:36px;opacity:.35">🏆</div>
+                <div style="font-size:32px;opacity:.5">🏆</div>
             </div>
         `;
     } else {
-        summaryArea.innerHTML = `
-            <div class="result-no-win">😅 本期 15 注均未中奖，继续加油！</div>
-        `;
+        summaryArea.innerHTML = `<div class="result-no-win">😅 本期 15 注均未中奖，继续加油！</div>`;
     }
 
     resultsSection.scrollIntoView({ behavior:'smooth' });
 }
 
-// ─── 工具函数 ──────────────────────────────────────────────────
+// ─── 工具函数 ────────────────────────────────────────────────
 function formatMoney(n){ return n == null ? '¥0' : '¥' + Number(n).toLocaleString(); }
 
 function showToast(msg){
@@ -1485,103 +687,5 @@ function showToast(msg){
 
 document.addEventListener('keydown', e => { if(e.key==='F12'){ e.preventDefault(); checkTickets(); } });
 </script>
-<script>
-// ════════════════════════════════════════════════════════
-// 翠竹禅境 · 动态背景系统
-// ════════════════════════════════════════════════════════
-
-(function initDynamicBackground() {
-    // 创建竹林背景
-    const bambooBg = document.createElement('div');
-    bambooBg.className = 'bamboo-bg';
-    const bambooCount = 25;
-
-    for (let i = 0; i < bambooCount; i++) {
-        const bamboo = document.createElement('div');
-        bamboo.className = 'bamboo';
-        const height = 180 + Math.random() * 250;
-        const width = 14 + Math.random() * 10;
-        const left = (i / bambooCount) * 100 + (Math.random() - 0.5) * 5;
-        const delay = Math.random() * 10;
-        const nodes = Math.floor(height / 35);
-
-        bamboo.style.height = `${height}px`;
-        bamboo.style.width = `${width}px`;
-        bamboo.style.left = `${left}%`;
-        bamboo.style.animationDelay = `${delay}s`;
-        bamboo.style.animationDuration = `${8 + Math.random() * 6}s`;
-
-        // 竹节渐变
-        let gradientColors = [];
-        for (let j = 0; j <= nodes; j++) {
-            gradientColors.push(j === 0 || j === nodes ? '#1a4a1a' : '#2d6a2d');
-        }
-        gradientColors.push('#1a4a1a');
-        bamboo.style.background = `linear-gradient(to bottom, ${gradientColors.join(', ')})`;
-
-        bambooBg.appendChild(bamboo);
-    }
-    document.body.insertBefore(bambooBg, document.body.firstChild);
-
-    // 创建飘落竹叶
-    const createLeaf = () => {
-        const leaf = document.createElement('div');
-        leaf.className = 'leaf';
-        const size = 8 + Math.random() * 10;
-        const left = Math.random() * 100;
-        const duration = 12 + Math.random() * 15;
-        const delay = Math.random() * 20;
-        const rotateSpeed = (Math.random() - 0.5) * 360;
-
-        leaf.style.width = `${size}px`;
-        leaf.style.height = `${size * 0.7}px`;
-        leaf.style.left = `${left}%`;
-        leaf.style.top = `-5vh`;
-        leaf.style.opacity = '0';
-        leaf.style.fontSize = `${rotateSpeed}deg/s`;
-
-        bambooBg.appendChild(leaf);
-
-        let opacity = 0;
-        const fall = setInterval(() => {
-            opacity += 0.02;
-            if (opacity > 0.9) opacity = 0.9;
-            leaf.style.opacity = opacity;
-            leaf.style.top = (parseFloat(leaf.style.top) || -5) + 0.5 + 'vh';
-            leaf.style.transform = `rotate(${parseFloat(leaf.dataset.rotate || 0)}deg)`;
-            leaf.dataset.rotate = (parseFloat(leaf.dataset.rotate) || 0) + 2;
-
-            if (parseFloat(leaf.style.top) >= '110vh') {
-                clearInterval(fall);
-                leaf.remove();
-            }
-        }, 30);
-    };
-
-    setInterval(createLeaf, 800);
-
-    // 创建粒子光效
-    const particles = document.createElement('div');
-    particles.className = 'particles';
-    const particleCount = 35;
-
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        const left = Math.random() * 100;
-        const duration = 18 + Math.random() * 20;
-        const delay = Math.random() * 25;
-
-        particle.style.left = `${left}%`;
-        particle.style.animationDuration = `${duration}s`;
-        particle.style.animationDelay = `${delay}s`;
-
-        particles.appendChild(particle);
-    }
-    document.body.insertBefore(particles, document.body.firstChild);
-})();
-
-// ─── 你的原有业务逻辑（完全保留）──────────────────────────────────────────
 </body>
 </html>
-
